@@ -1,0 +1,982 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BrandLens | Intelligent Brand Governance</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        bg: {
+                            base: '#0b1120',
+                            panel: '#111827',
+                            surface: '#1E293B',
+                            hover: '#334155'
+                        },
+                        brand: {
+                            blue: '#0EA5E9',
+                            blueHover: '#0284C7',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #0B0F19; }
+        ::-webkit-scrollbar-thumb { background: #1E293B; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #334155; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* Highlight Styles */
+        .hl-warning {
+            background-color: rgba(234, 179, 8, 0.2);
+            color: #fde047;
+            border: 1px solid rgba(234, 179, 8, 0.4);
+            border-radius: 4px;
+            padding: 0 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .hl-warning:hover {
+            background-color: rgba(234, 179, 8, 0.3);
+            border-color: rgba(234, 179, 8, 0.6);
+        }
+    </style>
+</head>
+<body class="bg-bg-base text-slate-300 font-sans h-screen flex flex-col overflow-hidden antialiased">
+
+    <!-- 1. Top Navigation -->
+    <header class="flex items-center justify-between px-6 py-3 border-b border-slate-800 bg-bg-base shrink-0 relative z-40">
+        <div class="flex items-center gap-8">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-brand-blue flex items-center justify-center shadow-lg shadow-blue-500/20">
+                    <i class="fa-solid fa-shield-halved text-white"></i>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-white font-semibold text-lg tracking-tight">BrandLens</span>
+                    <span class="px-1.5 py-0.5 rounded text-[10px] font-medium bg-brand-blue/10 text-brand-blue border border-brand-blue/20">v1.0</span>
+                </div>
+            </div>
+            
+            <nav class="hidden md:flex items-center gap-1 text-sm font-medium text-slate-400" id="main-nav">
+                <a href="#" data-target="dashboard" class="nav-link px-3 py-2 rounded-md hover:text-slate-100 hover:bg-bg-surface transition-colors flex items-center gap-2 text-brand-blue bg-blue-500/10">
+                    <i class="fa-solid fa-table-cells-large"></i> Dashboard
+                </a>
+                <a href="#" data-target="brand-kit" class="nav-link px-3 py-2 rounded-md hover:text-slate-100 hover:bg-bg-surface transition-colors flex items-center gap-2">
+                    <i class="fa-solid fa-book"></i> Brand Kit
+                </a>
+                <a href="#" data-target="inbox" class="nav-link px-3 py-2 rounded-md hover:text-slate-100 hover:bg-bg-surface transition-colors flex items-center gap-2">
+                    <i class="fa-solid fa-inbox"></i> Inbox
+                </a>
+                <a href="#" data-target="queue" class="nav-link px-3 py-2 rounded-md hover:text-slate-100 hover:bg-bg-surface transition-colors flex items-center gap-2">
+                    <i class="fa-solid fa-check-double"></i> Approvals
+                </a>
+                <a href="#" data-target="insights" class="nav-link px-3 py-2 rounded-md hover:text-slate-100 hover:bg-bg-surface transition-colors flex items-center gap-2">
+                    <i class="fa-solid fa-chart-line"></i> Insights
+                </a>
+                <a href="#" data-target="settings" class="nav-link px-3 py-2 rounded-md hover:text-slate-100 hover:bg-bg-surface transition-colors flex items-center gap-2">
+                    <i class="fa-solid fa-gear"></i> Settings
+                </a>
+            </nav>
+        </div>
+
+        <div class="flex items-center">
+            <!-- NEW FEATURE 1: Interactive Profile Dropdown -->
+            <div class="relative">
+                <button id="btn-profile" class="flex items-center gap-3 bg-bg-panel hover:bg-bg-surface border border-slate-700/50 rounded-full pl-1.5 pr-4 py-1.5 transition-colors">
+                    <div class="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-slate-300 font-medium text-sm">A</div>
+                    <div class="flex flex-col items-start text-left">
+                        <span class="text-sm font-medium text-slate-200 leading-none">Ada Lovelace</span>
+                        <span class="text-[10px] font-bold text-emerald-400 tracking-wider mt-1 uppercase">Creator</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-down text-slate-500 text-xs ml-2"></i>
+                </button>
+                
+                <div id="profile-dropdown" class="hidden absolute right-0 mt-2 w-48 bg-bg-panel border border-slate-700 rounded-xl shadow-xl overflow-hidden z-50 py-1 transition-opacity">
+                    <a href="#" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-800 hover:text-white transition-colors">
+                        <i class="fa-solid fa-layer-group w-5"></i> Workspace Settings
+                    </a>
+                    <a href="#" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-800 hover:text-white transition-colors">
+                        <i class="fa-regular fa-credit-card w-5"></i> Billing
+                    </a>
+                    <div class="border-t border-slate-700/50 my-1"></div>
+                    <a href="#" class="block px-4 py-2 text-sm text-red-400 hover:bg-slate-800 hover:text-red-300 transition-colors">
+                        <i class="fa-solid fa-arrow-right-from-bracket w-5"></i> Sign Out
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- 2. Governance Dashboard View -->
+    <main id="view-dashboard" class="flex flex-col flex-1 overflow-y-auto bg-bg-base p-8 relative">
+        <div class="max-w-[1400px] mx-auto w-full flex flex-col gap-8">
+            <div class="flex items-start justify-between">
+                <div>
+                    <div class="flex items-center gap-4">
+                        <h1 class="text-3xl font-bold text-white tracking-tight">Governance Dashboard</h1>
+                    </div>
+                    <p class="text-slate-400 mt-2 text-base">Real-time compliance monitoring across pre-publication marketing & product collateral</p>
+                </div>
+                <button class="flex items-center gap-2 px-5 py-2.5 rounded-full bg-brand-blue hover:bg-brand-blueHover text-white text-sm font-semibold shadow-lg shadow-blue-500/20 transition-colors">
+                    <i class="fa-solid fa-plus"></i> New Content
+                </button>
+            </div>
+
+            <!-- Dashboard Filters -->
+            <div class="flex items-center gap-3 border-b border-slate-800 pb-5 overflow-x-auto hide-scrollbar">
+                <button class="dash-filter flex items-center gap-2 px-4 py-1.5 rounded-full bg-brand-blue/20 text-brand-blue border border-brand-blue/30 text-sm font-medium transition-colors" data-filter="all">
+                    All Items <span class="px-1.5 py-0.5 rounded-md bg-brand-blue/20 text-xs font-bold">4</span>
+                </button>
+                <button class="dash-filter flex items-center gap-2 px-4 py-1.5 rounded-full bg-bg-panel text-slate-400 border border-slate-700 hover:bg-slate-800 text-sm font-medium transition-colors" data-filter="draft">
+                    Drafts <span class="px-1.5 py-0.5 rounded-md bg-slate-800 text-xs font-bold text-slate-300">3</span>
+                </button>
+                <button class="dash-filter flex items-center gap-2 px-4 py-1.5 rounded-full bg-bg-panel text-slate-400 border border-slate-700 hover:bg-slate-800 text-sm font-medium transition-colors" data-filter="submitted">
+                    Submitted <span class="px-1.5 py-0.5 rounded-md bg-slate-800 text-xs font-bold text-slate-300">1</span>
+                </button>
+            </div>
+
+            <div class="flex gap-8">
+                <div class="flex-1 flex flex-col gap-4">
+                    <!-- Dashboard Row -> Routes to Inbox -->
+                    <div class="dash-item bg-bg-panel border border-slate-800 hover:border-slate-600 rounded-xl p-5 flex items-center justify-between transition-all group" data-item-status="draft">
+                        <div class="flex flex-col gap-3">
+                            <div class="flex gap-2">
+                                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-400 border border-slate-700 uppercase">Draft</span>
+                                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-400 border border-slate-700 uppercase">Press</span>
+                            </div>
+                            <h3 class="text-xl font-semibold text-slate-200 group-hover:text-brand-blue transition-colors">Unsubstantiated Market Claims Flyer</h3>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <span class="px-3 py-1 rounded border border-yellow-500/30 text-yellow-500 bg-yellow-500/10 text-sm font-semibold">3 Open Issues</span>
+                            <button class="btn-open-inbox w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center text-slate-400 group-hover:bg-brand-blue group-hover:text-white transition-colors cursor-pointer">
+                                <i class="fa-solid fa-arrow-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="w-[400px] flex flex-col gap-6 shrink-0">
+                    <div class="bg-bg-panel border border-slate-800 rounded-xl p-6 shadow-sm">
+                        <h3 class="text-brand-blue text-sm font-bold flex items-center gap-2 mb-6 uppercase tracking-widest">
+                            <i class="fa-solid fa-wand-magic-sparkles text-lg"></i> Core Principles
+                        </h3>
+                        <ul class="space-y-5 text-[15px] leading-relaxed">
+                            <li class="flex gap-3 text-slate-300">
+                                <span class="text-brand-blue font-bold">1.</span> 
+                                <div><strong class="text-white">Explain, Never Reject:</strong> Findings include plain-language rationale.</div>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- NEW FEATURE 2: Governance Audit Stream Widget -->
+                    <div class="bg-bg-panel border border-slate-800 rounded-xl p-6 shadow-sm">
+                        <div class="flex items-center justify-between mb-6">
+                            <h3 class="text-emerald-400 text-sm font-bold flex items-center gap-2 uppercase tracking-widest">
+                                <i class="fa-solid fa-bolt-lightning text-lg"></i> Governance Audit Stream
+                            </h3>
+                            <button id="btn-full-log" class="text-xs font-semibold text-brand-blue hover:text-white transition-colors">Full Log</button>
+                        </div>
+                        <ul class="space-y-4 text-sm">
+                            <li class="flex justify-between items-start border-b border-slate-800/50 pb-3">
+                                <div>
+                                    <div class="text-slate-200 font-medium">LOGIN</div>
+                                    <div class="text-[10px] text-slate-500 mt-1 uppercase">Entity: USER (Ada Lovelace)</div>
+                                </div>
+                                <div class="text-slate-500 text-xs">05:40 PM</div>
+                            </li>
+                            <li class="flex justify-between items-start border-b border-slate-800/50 pb-3">
+                                <div>
+                                    <div class="text-slate-200 font-medium">REANALYSED</div>
+                                    <div class="text-[10px] text-slate-500 mt-1 uppercase">Entity: CONTENT_VERSION (ver-outdated-claims)</div>
+                                </div>
+                                <div class="text-slate-500 text-xs">05:40 PM</div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 3-7 & 14. Inbox View -->
+    <main id="view-inbox" class="hidden flex-col flex-1 overflow-hidden">
+        <!-- Document Header / Action Bar -->
+        <div class="flex items-center justify-between px-6 py-5 border-b border-slate-800 bg-bg-panel shrink-0 relative z-10">
+            <div class="flex flex-col gap-3">
+                <div class="flex items-center gap-3">
+                    <h1 class="text-xl font-semibold text-white tracking-tight">Unsubstantiated Market Claims Flyer</h1>
+                </div>
+                <div class="flex items-center gap-4 text-sm text-slate-400">
+                    <!-- Version Dropdown -->
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-clock-rotate-left"></i>
+                        <select id="version-select" class="bg-transparent border-none text-slate-300 text-sm focus:ring-0 cursor-pointer outline-none">
+                            <option value="2">Version 2 (Active)</option>
+                            <option value="1">Version 1</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="flex items-center gap-3 mt-2">
+                    <button id="btn-upload" class="flex items-center gap-2 px-4 py-2 rounded bg-slate-800 hover:bg-slate-700 border border-slate-700 text-sm font-medium text-slate-200 transition-colors">
+                        <i class="fa-solid fa-upload"></i> Upload Asset
+                    </button>
+                    <!-- Re-analyse Action -->
+                    <button id="btn-reanalyse" class="flex items-center gap-2 px-4 py-2 rounded bg-slate-800 hover:bg-slate-700 border border-slate-700 text-sm font-medium text-slate-200 transition-all duration-300">
+                        <i class="fa-solid fa-rotate-right indicator"></i> Re-analyse
+                    </button>
+                    <button id="btn-submit-review" class="flex items-center gap-2 px-5 py-2 rounded bg-brand-blue hover:bg-brand-blueHover text-sm font-medium text-white transition-colors shadow-lg shadow-blue-500/20 ml-2">
+                        <i class="fa-solid fa-paper-plane"></i> Submit for Review
+                    </button>
+                </div>
+            </div>
+
+            <!-- Readiness Score Dial -->
+            <div class="flex items-center gap-6 bg-bg-base border border-slate-800 p-4 rounded-xl">
+                <div class="relative w-14 h-14 flex items-center justify-center">
+                    <svg class="w-14 h-14 transform -rotate-90">
+                        <circle cx="28" cy="28" r="24" stroke="currentColor" stroke-width="4" fill="transparent" class="text-slate-800"/>
+                        <circle id="score-circle" cx="28" cy="28" r="24" stroke="currentColor" stroke-width="4" fill="transparent" stroke-dasharray="150" stroke-dashoffset="102" class="text-red-500 transition-all duration-1000"/>
+                    </svg>
+                    <span id="score-text" class="absolute text-xs font-bold text-white">32%</span>
+                </div>
+                <div class="flex flex-col gap-1">
+                    <span class="text-xs font-medium text-slate-400 tracking-wider">READINESS SCORE</span>
+                    <span class="text-base font-semibold text-white">Publication Blocked</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Editor and Sidebar -->
+        <div class="flex flex-1 overflow-hidden relative">
+            <div class="w-2/3 flex flex-col border-r border-slate-800 bg-bg-base relative z-10">
+                <div class="flex items-center justify-between px-6 py-3 border-b border-slate-800/50">
+                    <div class="flex items-center gap-2">
+                        <button id="btn-marked-preview" class="flex items-center gap-2 px-3 py-1.5 rounded-md bg-brand-blue/10 text-brand-blue text-sm font-medium border border-brand-blue/20 transition-colors">
+                            <i class="fa-solid fa-eye"></i> Marked Inspection Preview
+                        </button>
+                        <button id="btn-raw-editor" class="flex items-center gap-2 px-3 py-1.5 rounded-md text-slate-400 hover:text-slate-200 hover:bg-slate-800 text-sm font-medium transition-colors">
+                            <i class="fa-solid fa-pen"></i> Raw Copy Editor
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="flex-1 p-8 overflow-y-auto">
+                    <!-- Dirty Warning -->
+                    <div id="dirty-warning" class="hidden items-center gap-2 bg-yellow-500/10 text-yellow-500 border border-yellow-500/30 px-4 py-2.5 rounded-lg mb-6 text-sm font-medium">
+                        <i class="fa-solid fa-triangle-exclamation"></i> Changes pending Re-analysis. Click Re-analyse to update findings.
+                    </div>
+                    
+                    <!-- Marked Preview -->
+                    <div id="editor-marked" class="bg-bg-panel border border-slate-800 rounded-xl p-8 shadow-sm text-lg leading-relaxed text-slate-300 max-w-4xl">
+                        <div id="editor-marked-content">
+                            <span class="hl-warning" data-issue-id="TERM-1">Northwind</span> Home delivers the <span class="hl-warning" data-issue-id="CLAIM-1">#1</span> <span class="hl-warning" data-issue-id="CLAIM-2">best-in-class</span> performance that is guaranteed to transform your household climate.
+                        </div>
+                    </div>
+                    
+                    <!-- Raw Editor -->
+                    <textarea id="editor-raw" class="hidden w-full h-full min-h-[300px] bg-bg-panel border border-slate-800 rounded-xl p-8 shadow-sm text-lg text-slate-300 max-w-4xl outline-none resize-none focus:ring-1 focus:ring-brand-blue/50" spellcheck="false">Northwind Home delivers the #1 best-in-class performance that is guaranteed to transform your household climate.</textarea>
+                </div>
+            </div>
+
+            <!-- Findings Sidebar -->
+            <div id="sidebar-findings" class="w-1/3 flex flex-col bg-bg-panel overflow-hidden transition-all duration-300 relative z-10">
+                <div class="px-6 py-4 border-b border-slate-800 shrink-0">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-base font-semibold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-layer-group text-brand-blue"></i> Findings & Suggestions
+                        </h2>
+                    </div>
+                    <!-- Status Tabs -->
+                    <div class="flex p-1 bg-bg-base rounded-lg border border-slate-800 mb-4">
+                        <button data-status="open" class="status-tab flex-1 py-1.5 text-sm font-medium text-slate-200 bg-slate-800 rounded shadow-sm">Open (3)</button>
+                        <button data-status="all" class="status-tab flex-1 py-1.5 text-sm font-medium text-slate-500 hover:text-slate-300">All (3)</button>
+                        <button data-status="decided" class="status-tab flex-1 py-1.5 text-sm font-medium text-slate-500 hover:text-slate-300">Decided (0)</button>
+                    </div>
+                    <!-- Category Filters -->
+                    <div class="flex items-center gap-2 pb-1 overflow-x-auto hide-scrollbar">
+                        <button data-category-filter="ALL" class="category-filter px-3 py-1 rounded text-xs font-medium bg-brand-blue/20 text-brand-blue border border-brand-blue/30">ALL (3)</button>
+                        <button data-category-filter="CLAIM" class="category-filter px-3 py-1 rounded text-xs font-medium bg-bg-base text-slate-400 border border-slate-700">CLAIM (2)</button>
+                        <button data-category-filter="TERM" class="category-filter px-3 py-1 rounded text-xs font-medium bg-bg-base text-slate-400 border border-slate-700">TERM (1)</button>
+                        <button data-category-filter="TONE" class="category-filter px-3 py-1 rounded text-xs font-medium bg-bg-base text-slate-400 border border-slate-700">TONE (0)</button>
+                        <button data-category-filter="A11Y" class="category-filter px-3 py-1 rounded text-xs font-medium bg-bg-base text-slate-400 border border-slate-700">A11Y (0)</button>
+                    </div>
+                </div>
+
+                <div class="flex-1 overflow-y-auto p-4 space-y-4" id="findings-list">
+                    <!-- Card 1 -->
+                    <div class="finding-card bg-bg-base border border-slate-700 rounded-xl overflow-hidden" id="card-TERM-1" data-card-id="TERM-1" data-correction="Northwind Home" data-category="TERM" data-status="open">
+                        <div class="p-4">
+                            <span class="text-sm font-semibold text-slate-200 block mb-2">TERM-AVOID</span>
+                            <p class="text-sm text-slate-300 mb-3">Avoid term "Northwind". Preferred: "Northwind Home".</p>
+                            <div class="bg-slate-800/50 p-2 rounded mb-3 flex items-center justify-between border border-slate-700">
+                                <span class="text-emerald-400 text-sm font-mono proposed-text">Northwind Home</span>
+                                <button class="btn-edit text-xs text-slate-400 hover:text-white px-2 py-1"><i class="fa-solid fa-pen"></i> Edit</button>
+                            </div>
+                            <div class="flex justify-end gap-2 border-t border-slate-800/50 pt-3">
+                                <button class="btn-reject px-3 py-1.5 rounded bg-slate-800 hover:bg-slate-700 text-sm text-slate-300 border border-slate-700">Reject</button>
+                                <button class="btn-accept px-4 py-1.5 rounded bg-emerald-500 hover:bg-emerald-600 text-sm text-white shadow-lg">Accept</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card 2 (With Citation) -->
+                    <div class="finding-card bg-bg-base border border-slate-700 rounded-xl overflow-hidden" id="card-CLAIM-1" data-card-id="CLAIM-1" data-correction="leading" data-category="CLAIM" data-status="open">
+                        <div class="p-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-sm font-semibold text-slate-200">CLAIM-SUPERLATIVE</span>
+                                <button class="source-trigger flex items-center gap-1.5 px-2 py-1 rounded bg-slate-800/50 text-brand-blue text-xs border border-slate-700 hover:border-brand-blue/50 transition-colors">
+                                    <i class="fa-solid fa-database"></i> Source
+                                </button>
+                            </div>
+                            <p class="text-sm text-slate-300 mb-3">Unsubstantiated superlative claim "#1".</p>
+                            <div class="bg-slate-800/50 p-2 rounded mb-3 flex items-center justify-between border border-slate-700">
+                                <span class="text-emerald-400 text-sm font-mono proposed-text">leading</span>
+                                <button class="btn-edit text-xs text-slate-400 hover:text-white px-2 py-1"><i class="fa-solid fa-pen"></i> Edit</button>
+                            </div>
+                            <div class="flex justify-end gap-2 border-t border-slate-800/50 pt-3">
+                                <button class="btn-reject px-3 py-1.5 rounded bg-slate-800 hover:bg-slate-700 text-sm text-slate-300 border border-slate-700">Reject</button>
+                                <button class="btn-accept px-4 py-1.5 rounded bg-emerald-500 hover:bg-emerald-600 text-sm text-white shadow-lg">Accept</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Card 3 -->
+                    <div class="finding-card bg-bg-base border border-slate-700 rounded-xl overflow-hidden" id="card-CLAIM-2" data-card-id="CLAIM-2" data-correction="premium" data-category="CLAIM" data-status="open">
+                        <div class="p-4">
+                            <span class="text-sm font-semibold text-slate-200 block mb-2">CLAIM-VAGUE</span>
+                            <p class="text-sm text-slate-300 mb-3">Vague performance claims "best-in-class".</p>
+                            <div class="bg-slate-800/50 p-2 rounded mb-3 flex items-center justify-between border border-slate-700">
+                                <span class="text-emerald-400 text-sm font-mono proposed-text">premium</span>
+                                <button class="btn-edit text-xs text-slate-400 hover:text-white px-2 py-1"><i class="fa-solid fa-pen"></i> Edit</button>
+                            </div>
+                            <div class="flex justify-end gap-2 border-t border-slate-800/50 pt-3">
+                                <button class="btn-reject px-3 py-1.5 rounded bg-slate-800 hover:bg-slate-700 text-sm text-slate-300 border border-slate-700">Reject</button>
+                                <button class="btn-accept px-4 py-1.5 rounded bg-emerald-500 hover:bg-emerald-600 text-sm text-white shadow-lg">Accept</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Citation Overlay (Feature 7) -->
+            <div id="citation-panel" class="absolute right-0 top-0 bottom-0 w-[400px] bg-bg-panel border-l border-slate-800 transform translate-x-full transition-transform duration-300 z-40 flex flex-col shadow-2xl">
+                <div class="px-6 py-4 border-b border-slate-800 flex justify-between items-center bg-bg-base">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-database text-brand-blue"></i>
+                        <h3 class="font-semibold text-white">Evidence Source</h3>
+                    </div>
+                    <button id="btn-close-citation" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+                </div>
+                <div class="p-6 flex-1 overflow-y-auto">
+                    <h4 class="text-lg font-bold text-white mb-2">2023 Thermal Modulation Award (EXPIRED)</h4>
+                    <div class="flex gap-2 mb-6">
+                        <span class="px-2 py-0.5 rounded text-xs font-bold bg-red-500/10 text-red-400 border border-red-500/20">EXPIRED</span>
+                    </div>
+                    <div class="bg-bg-base border border-slate-800 p-4 rounded-lg mb-4 text-sm text-slate-300">
+                        "Rated #1 best-in-class thermostat for smart home temperature modulation."
+                    </div>
+                </div>
+            </div>
+            <div id="citation-overlay" class="absolute inset-0 bg-black/40 hidden z-30 opacity-0 transition-opacity duration-300"></div>
+        </div>
+    </main>
+
+    <!-- 10. Brand Kit View -->
+    <main id="view-brand-kit" class="hidden flex-col flex-1 overflow-y-auto bg-bg-base p-8">
+        <div class="max-w-[1400px] mx-auto w-full flex flex-col gap-6">
+            <h1 class="text-3xl font-bold text-white tracking-tight">Brand Kit & Governance</h1>
+            
+            <div class="flex gap-4 border-b border-slate-800 pb-4">
+                <button class="bk-tab px-4 py-2 text-sm font-medium text-brand-blue border-b-2 border-brand-blue transition-colors" data-bk-target="guidelines">Guidelines</button>
+                <button class="bk-tab px-4 py-2 text-sm font-medium text-slate-400 border-b-2 border-transparent hover:text-slate-200 transition-colors" data-bk-target="terms">Terminology</button>
+                <button class="bk-tab px-4 py-2 text-sm font-medium text-slate-400 border-b-2 border-transparent hover:text-slate-200 transition-colors" data-bk-target="assets">Approved Assets</button>
+            </div>
+
+            <div class="grid grid-cols-2 gap-6" id="bk-grid">
+                <div class="bk-card bg-bg-panel border border-slate-800 rounded-xl p-6" data-bk-category="guidelines">
+                    <h3 class="text-lg font-semibold text-slate-200">CLAIM-1: Superlatives</h3>
+                    <p class="text-sm text-slate-400 mt-2">Absolute superlatives are strictly prohibited unless linked to an active Approved Source.</p>
+                </div>
+                <div class="bk-card bg-bg-panel border border-slate-800 rounded-xl p-6" data-bk-category="terms">
+                    <h3 class="text-lg font-semibold text-slate-200">TERM-1: Product Naming</h3>
+                    <p class="text-sm text-slate-400 mt-2">Refer to our brand as Northwind Home, never abbreviated as Northwind.</p>
+                </div>
+                <div class="bk-card bg-bg-panel border border-slate-800 rounded-xl p-6" data-bk-category="assets">
+                    <h3 class="text-lg font-semibold text-slate-200">ASSET-1: Primary Logo</h3>
+                    <p class="text-sm text-slate-400 mt-2">SVG vector files for the primary brandmark.</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 11. Approvals Queue View -->
+    <main id="view-queue" class="hidden flex-col flex-1 overflow-y-auto bg-bg-base p-8">
+        <div class="max-w-[1400px] mx-auto w-full flex flex-col gap-8">
+            <div class="flex justify-between items-center">
+                <h1 class="text-3xl font-bold text-white tracking-tight">Approvals Queue</h1>
+                <div class="flex items-center gap-3">
+                    <span class="text-sm text-slate-500">Reviewer Persona:</span>
+                    <select id="persona-toggle" class="bg-bg-panel border border-slate-700 text-brand-blue text-sm rounded-lg p-2 outline-none">
+                        <option value="creator">Creator View</option>
+                        <option value="reviewer">Reviewer View</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div id="queue-list" class="flex flex-col gap-4">
+                <div class="queue-item bg-bg-panel border border-slate-800 rounded-xl p-6 flex items-center justify-between">
+                    <div>
+                        <h3 class="text-xl font-semibold text-slate-200">Product Feature Release</h3>
+                        <div class="text-sm text-slate-500">Submitted by Ada Lovelace</div>
+                    </div>
+                    <div class="actions-creator flex">
+                        <button disabled class="px-4 py-2 rounded border border-slate-700/50 text-sm text-slate-500 cursor-not-allowed">Self-Approval Prohibited</button>
+                    </div>
+                    <div class="actions-reviewer hidden gap-3">
+                        <button class="px-4 py-2 rounded border border-red-500/50 text-red-400 text-sm hover:bg-red-500/10">Request Changes</button>
+                        <button class="btn-approve-stage-1 px-4 py-2 rounded bg-emerald-500 text-white text-sm hover:bg-emerald-600 shadow-lg">Approve Stage 1</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 12. Insights View -->
+    <main id="view-insights" class="hidden flex-col flex-1 overflow-y-auto bg-bg-base p-8">
+        <div class="max-w-[1400px] mx-auto w-full">
+            <div class="flex justify-between items-center mb-8">
+                <h1 class="text-3xl font-bold text-white tracking-tight">Governance Insights</h1>
+                <button id="btn-export-csv" class="flex items-center gap-2 px-4 py-2 rounded bg-slate-800 hover:bg-slate-700 border border-slate-700 text-sm font-medium text-slate-200 transition-colors">
+                    <i class="fa-solid fa-file-export"></i> Export Insights CSV
+                </button>
+            </div>
+            
+            <div class="grid grid-cols-4 gap-6 mb-8">
+                <div class="bg-bg-panel border border-slate-800 rounded-xl p-6 shadow-sm">
+                    <div class="text-slate-400 text-xs font-bold mb-2">FIRST-PASS YIELD</div>
+                    <div class="text-4xl font-bold text-white">82%</div>
+                </div>
+                <div class="bg-bg-panel border border-slate-800 rounded-xl p-6 shadow-sm">
+                    <div class="text-slate-400 text-xs font-bold mb-2">TOTAL FINDINGS</div>
+                    <div class="text-4xl font-bold text-white">44</div>
+                </div>
+            </div>
+
+            <div class="bg-bg-panel border border-slate-800 rounded-xl p-6 shadow-sm">
+                <h3 class="text-lg font-semibold text-slate-200 mb-4">Ambiguity Radar</h3>
+                <div class="text-sm text-slate-400">Identifies guidelines where proposed fixes are frequently rejected.</div>
+                <div class="mt-4 border-t border-slate-800 pt-4 text-sm text-slate-300 flex justify-between">
+                    <span>CLAIM-SUPERLATIVE</span>
+                    <span class="text-red-400">High Rejection Rate (65%)</span>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 13. Settings View -->
+    <main id="view-settings" class="hidden flex-col flex-1 overflow-y-auto bg-bg-base p-8">
+        <div class="max-w-[1000px] mx-auto w-full">
+            <h1 class="text-3xl font-bold text-white tracking-tight mb-8">Platform Settings</h1>
+            <div class="bg-bg-panel border border-slate-800 rounded-xl p-6 shadow-sm flex flex-col gap-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="text-lg font-semibold text-white">Protect Confidential Materials</h3>
+                        <p class="text-sm text-slate-400">Prevent sensitive data from being logged externally.</p>
+                    </div>
+                    <button class="settings-toggle w-12 h-6 rounded-full bg-brand-blue relative transition-colors"><span class="absolute left-1 top-1 w-4 h-4 rounded-full bg-white transition-transform translate-x-6"></span></button>
+                </div>
+                <div class="h-px bg-slate-800 w-full"></div>
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="text-lg font-semibold text-white">Require AI Disclosure</h3>
+                        <p class="text-sm text-slate-400">Automatically append AI usage disclosures.</p>
+                    </div>
+                    <button class="settings-toggle w-12 h-6 rounded-full bg-slate-600 relative transition-colors"><span class="absolute left-1 top-1 w-4 h-4 rounded-full bg-white transition-transform"></span></button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 8. Upload Modal -->
+    <div id="upload-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center">
+        <div class="bg-bg-panel border border-slate-700 rounded-xl p-6 w-full max-w-md shadow-2xl transform scale-95 opacity-0 transition-all duration-300" id="upload-modal-content">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold text-white">Upload Asset</h3>
+                <button id="btn-close-modal" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div class="border-2 border-dashed border-slate-700 rounded-lg p-8 flex flex-col items-center justify-center mb-4 cursor-pointer hover:bg-slate-800/50">
+                <i class="fa-solid fa-upload text-3xl text-brand-blue mb-2"></i>
+                <p class="text-sm text-slate-300">Click to browse or drag and drop</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- NEW FEATURE 2: Dashboard Audit Log Full Panel Overlay -->
+    <div id="audit-panel" class="fixed right-0 top-0 bottom-0 w-[450px] bg-bg-panel border-l border-slate-800 transform translate-x-full transition-transform duration-300 z-[60] flex flex-col shadow-2xl">
+        <div class="px-6 py-4 border-b border-slate-800 flex justify-between items-center bg-bg-base">
+            <div class="flex items-center gap-2">
+                <i class="fa-solid fa-list-ul text-emerald-400"></i>
+                <h3 class="font-semibold text-white">Governance Audit Log</h3>
+            </div>
+            <button id="btn-close-audit" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+        </div>
+        <div class="p-6 flex-1 overflow-y-auto space-y-5">
+            <!-- Simulated large list of logs -->
+            <div class="flex justify-between items-start border-b border-slate-800/50 pb-4">
+                <div>
+                    <div class="text-slate-200 font-medium text-sm">LOGIN</div>
+                    <div class="text-[11px] text-slate-400 mt-1">Entity: USER (Ada Lovelace)</div>
+                    <div class="text-[11px] text-slate-500 mt-1">IP: 192.168.1.100 • OS: macOS</div>
+                </div>
+                <div class="text-slate-500 text-xs">05:40 PM</div>
+            </div>
+            <div class="flex justify-between items-start border-b border-slate-800/50 pb-4">
+                <div>
+                    <div class="text-slate-200 font-medium text-sm">REANALYSED</div>
+                    <div class="text-[11px] text-slate-400 mt-1">Entity: CONTENT_VERSION (ver-outdated-claims)</div>
+                    <div class="text-[11px] text-slate-500 mt-1">Action: Triggered full ruleset scan v2.4</div>
+                </div>
+                <div class="text-slate-500 text-xs">05:40 PM</div>
+            </div>
+            <div class="flex justify-between items-start border-b border-slate-800/50 pb-4">
+                <div>
+                    <div class="text-slate-200 font-medium text-sm">RULE_TRIGGER</div>
+                    <div class="text-[11px] text-slate-400 mt-1">Entity: RULE (CLAIM-SUPERLATIVE)</div>
+                    <div class="text-[11px] text-slate-500 mt-1">Matched span: "best-in-class" [chars 24..37]</div>
+                </div>
+                <div class="text-slate-500 text-xs">05:41 PM</div>
+            </div>
+            <div class="flex justify-between items-start border-b border-slate-800/50 pb-4">
+                <div>
+                    <div class="text-slate-200 font-medium text-sm">CORRECTION_ACCEPTED</div>
+                    <div class="text-[11px] text-slate-400 mt-1">Entity: FINDING (TERM-1)</div>
+                    <div class="text-[11px] text-slate-500 mt-1">Applied: "Northwind Home" via user interface</div>
+                </div>
+                <div class="text-slate-500 text-xs">05:43 PM</div>
+            </div>
+            <div class="flex justify-between items-start border-b border-slate-800/50 pb-4">
+                <div>
+                    <div class="text-slate-200 font-medium text-sm">STATE_CHANGE</div>
+                    <div class="text-[11px] text-slate-400 mt-1">Entity: DOCUMENT (Unsubstantiated Flyer)</div>
+                    <div class="text-[11px] text-slate-500 mt-1">Transition: DRAFT -> SUBMITTED</div>
+                </div>
+                <div class="text-slate-500 text-xs">05:45 PM</div>
+            </div>
+        </div>
+    </div>
+    <div id="audit-overlay" class="fixed inset-0 bg-black/40 hidden z-[55] opacity-0 transition-opacity duration-300"></div>
+
+    <!-- Reusable Toast -->
+    <div id="toast" class="fixed bottom-6 right-6 transform translate-y-10 opacity-0 bg-bg-panel border border-emerald-500/30 text-white px-4 py-3 rounded-lg shadow-lg flex items-center gap-3 transition-all duration-300 z-[100] pointer-events-none">
+        <i class="fa-solid fa-circle-check text-emerald-400 text-xl"></i>
+        <span class="font-medium text-sm" id="toast-msg">Action completed.</span>
+    </div>
+
+    <!-- Application Logic -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            // --- Toast Utility ---
+            const showToast = (msg) => {
+                const toast = document.getElementById('toast');
+                document.getElementById('toast-msg').textContent = msg;
+                toast.classList.remove('translate-y-10', 'opacity-0');
+                setTimeout(() => toast.classList.add('translate-y-10', 'opacity-0'), 2500);
+            };
+
+            // --- 1. Global Navigation ---
+            const navLinks = document.querySelectorAll('.nav-link');
+            const views = {
+                'dashboard': document.getElementById('view-dashboard'),
+                'inbox': document.getElementById('view-inbox'),
+                'brand-kit': document.getElementById('view-brand-kit'),
+                'insights': document.getElementById('view-insights'),
+                'queue': document.getElementById('view-queue'),
+                'settings': document.getElementById('view-settings')
+            };
+
+            const switchView = (targetId) => {
+                if(views[targetId]) {
+                    navLinks.forEach(l => l.className = 'nav-link px-3 py-2 rounded-md hover:text-slate-100 hover:bg-bg-surface transition-colors flex items-center gap-2 text-slate-400');
+                    const activeLink = document.querySelector(`.nav-link[data-target="${targetId}"]`);
+                    if(activeLink) activeLink.className = 'nav-link px-3 py-2 rounded-md text-brand-blue bg-blue-500/10 transition-colors flex items-center gap-2';
+                    
+                    Object.values(views).forEach(v => {
+                        v.classList.add('hidden');
+                        v.classList.remove('flex');
+                    });
+                    views[targetId].classList.remove('hidden');
+                    views[targetId].classList.add('flex');
+                }
+            };
+
+            navLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    switchView(link.getAttribute('data-target'));
+                });
+            });
+
+            // --- 2. Dashboard Interactivity ---
+            const dashFilters = document.querySelectorAll('.dash-filter');
+            const dashItems = document.querySelectorAll('.dash-item');
+
+            dashFilters.forEach(filter => {
+                filter.addEventListener('click', (e) => {
+                    const target = e.currentTarget;
+                    const filterValue = target.getAttribute('data-filter');
+
+                    dashFilters.forEach(f => {
+                        f.className = 'dash-filter flex items-center gap-2 px-4 py-1.5 rounded-full bg-bg-panel text-slate-400 border border-slate-700 hover:bg-slate-800 text-sm font-medium transition-colors';
+                        const badge = f.querySelector('span');
+                        if(badge) badge.className = 'px-1.5 py-0.5 rounded-md bg-slate-800 text-xs font-bold text-slate-300';
+                    });
+                    
+                    target.className = 'dash-filter flex items-center gap-2 px-4 py-1.5 rounded-full bg-brand-blue/20 text-brand-blue border border-brand-blue/30 text-sm font-medium transition-colors';
+                    const activeBadge = target.querySelector('span');
+                    if(activeBadge) activeBadge.className = 'px-1.5 py-0.5 rounded-md bg-brand-blue/20 text-xs font-bold';
+
+                    dashItems.forEach(item => {
+                        item.style.display = (filterValue === 'all' || item.getAttribute('data-item-status') === filterValue) ? 'flex' : 'none';
+                    });
+                });
+            });
+
+            document.querySelectorAll('.btn-open-inbox').forEach(btn => {
+                btn.addEventListener('click', () => switchView('inbox'));
+            });
+
+            // --- 3. Inbox Editor Toggle ---
+            const btnMarked = document.getElementById('btn-marked-preview');
+            const btnRaw = document.getElementById('btn-raw-editor');
+            const markedEditor = document.getElementById('editor-marked');
+            const rawEditor = document.getElementById('editor-raw');
+            const sidebar = document.getElementById('sidebar-findings');
+            
+            btnMarked.addEventListener('click', () => {
+                btnMarked.className = 'flex items-center gap-2 px-3 py-1.5 rounded-md bg-brand-blue/10 text-brand-blue text-sm font-medium border border-brand-blue/20 transition-colors';
+                btnRaw.className = 'flex items-center gap-2 px-3 py-1.5 rounded-md text-slate-400 hover:text-slate-200 hover:bg-slate-800 text-sm font-medium transition-colors';
+                markedEditor.classList.remove('hidden');
+                rawEditor.classList.add('hidden');
+                sidebar.classList.remove('opacity-50', 'pointer-events-none');
+            });
+            btnRaw.addEventListener('click', () => {
+                btnRaw.className = 'flex items-center gap-2 px-3 py-1.5 rounded-md bg-brand-blue/10 text-brand-blue text-sm font-medium border border-brand-blue/20 transition-colors';
+                btnMarked.className = 'flex items-center gap-2 px-3 py-1.5 rounded-md text-slate-400 hover:text-slate-200 hover:bg-slate-800 text-sm font-medium transition-colors';
+                rawEditor.classList.remove('hidden');
+                markedEditor.classList.add('hidden');
+                sidebar.classList.add('opacity-50', 'pointer-events-none');
+            });
+
+            // --- 4 & 5. Findings Sidebar (Accept, Reject, Edit, Filters) ---
+            let currentStatusTab = 'open';
+            let currentCategoryFilter = 'ALL';
+
+            const updateFilterUI = () => {
+                const cards = document.querySelectorAll('.finding-card');
+                let openCount = 0, decidedCount = 0;
+                let c_claim=0, c_term=0, c_tone=0, c_a11y=0;
+                
+                cards.forEach(card => {
+                    const st = card.dataset.status;
+                    const cat = card.dataset.category;
+                    
+                    if (st === 'decided') decidedCount++; else openCount++;
+                    if (st === 'open' || currentStatusTab === 'all') {
+                        if(cat==='CLAIM') c_claim++;
+                        if(cat==='TERM') c_term++;
+                    }
+
+                    let statusMatch = (currentStatusTab === 'all') || (currentStatusTab === st);
+                    let categoryMatch = (currentCategoryFilter === 'ALL') || (currentCategoryFilter === cat);
+                    
+                    card.style.display = (statusMatch && categoryMatch) ? 'block' : 'none';
+                });
+                
+                document.querySelector('[data-status="open"]').textContent = `Open (${openCount})`;
+                document.querySelector('[data-status="decided"]').textContent = `Decided (${decidedCount})`;
+                document.querySelector('[data-category-filter="ALL"]').textContent = `ALL (${openCount+decidedCount})`;
+                document.querySelector('[data-category-filter="CLAIM"]').textContent = `CLAIM (${c_claim})`;
+                document.querySelector('[data-category-filter="TERM"]').textContent = `TERM (${c_term})`;
+            };
+
+            // Card highlight interaction
+            document.querySelectorAll('.hl-warning[data-issue-id]').forEach(hl => {
+                hl.addEventListener('click', () => {
+                    const card = document.getElementById(`card-${hl.getAttribute('data-issue-id')}`);
+                    if (card && card.style.display !== 'none') {
+                        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        card.classList.add('ring-2', 'ring-brand-blue');
+                        setTimeout(() => card.classList.remove('ring-2', 'ring-brand-blue'), 1200);
+                    }
+                });
+            });
+
+            // Action Buttons in Cards
+            document.querySelectorAll('.finding-card').forEach(card => {
+                const btnAccept = card.querySelector('.btn-accept');
+                const btnReject = card.querySelector('.btn-reject');
+                const btnEdit = card.querySelector('.btn-edit');
+                const textSpan = card.querySelector('.proposed-text');
+                
+                // Edit Suggestion Logic
+                btnEdit.addEventListener('click', () => {
+                    if(btnEdit.textContent.includes('Edit')) {
+                        const input = document.createElement('input');
+                        input.type = 'text';
+                        input.value = card.dataset.correction;
+                        input.className = 'bg-slate-900 border border-slate-700 text-emerald-400 text-sm font-mono px-2 py-1 rounded w-full outline-none focus:border-brand-blue';
+                        textSpan.replaceWith(input);
+                        btnEdit.innerHTML = '<i class="fa-solid fa-check"></i> Save';
+                        input.focus();
+                    } else {
+                        const input = card.querySelector('input');
+                        card.dataset.correction = input.value;
+                        const newSpan = document.createElement('span');
+                        newSpan.className = 'text-emerald-400 text-sm font-mono proposed-text';
+                        newSpan.textContent = input.value;
+                        input.replaceWith(newSpan);
+                        btnEdit.innerHTML = '<i class="fa-solid fa-pen"></i> Edit';
+                    }
+                });
+
+                // Accept Logic
+                btnAccept.addEventListener('click', () => {
+                    const hlSpan = document.querySelector(`span[data-issue-id="${card.dataset.cardId}"]`);
+                    if (hlSpan) {
+                        hlSpan.textContent = card.dataset.correction;
+                        hlSpan.classList.remove('hl-warning');
+                    }
+                    card.dataset.status = 'decided';
+                    card.classList.add('opacity-50', 'pointer-events-none');
+                    updateFilterUI();
+                });
+
+                // Reject Logic
+                btnReject.addEventListener('click', () => {
+                    const hlSpan = document.querySelector(`span[data-issue-id="${card.dataset.cardId}"]`);
+                    if (hlSpan) hlSpan.classList.remove('hl-warning');
+                    card.dataset.status = 'decided';
+                    card.classList.add('opacity-50', 'pointer-events-none');
+                    updateFilterUI();
+                });
+            });
+
+            // Filters Tabs Listeners
+            document.querySelectorAll('.status-tab').forEach(tab => {
+                tab.addEventListener('click', (e) => {
+                    document.querySelectorAll('.status-tab').forEach(t => t.className = 'status-tab flex-1 py-1.5 text-sm font-medium text-slate-500 hover:text-slate-300');
+                    e.target.className = 'status-tab flex-1 py-1.5 text-sm font-medium text-slate-200 bg-slate-800 rounded shadow-sm';
+                    currentStatusTab = e.target.dataset.status;
+                    updateFilterUI();
+                });
+            });
+            document.querySelectorAll('.category-filter').forEach(filter => {
+                filter.addEventListener('click', (e) => {
+                    document.querySelectorAll('.category-filter').forEach(f => f.className = 'category-filter px-3 py-1 rounded text-xs font-medium bg-bg-base text-slate-400 border border-slate-700');
+                    e.target.className = 'category-filter px-3 py-1 rounded text-xs font-medium bg-brand-blue/20 text-brand-blue border border-brand-blue/30';
+                    currentCategoryFilter = e.target.dataset.categoryFilter;
+                    updateFilterUI();
+                });
+            });
+
+            // --- 6. Action Bar (Version, Submit) ---
+            const versionSelect = document.getElementById('version-select');
+            versionSelect.addEventListener('change', (e) => {
+                const scText = document.getElementById('score-text');
+                const scCircle = document.getElementById('score-circle');
+                if (e.target.value === "1") {
+                    scText.textContent = '13%';
+                    scCircle.style.strokeDashoffset = '130';
+                } else {
+                    scText.textContent = '32%';
+                    scCircle.style.strokeDashoffset = '102';
+                }
+            });
+
+            document.getElementById('btn-submit-review').addEventListener('click', () => {
+                showToast('Document submitted to Governance Queue');
+                setTimeout(() => switchView('queue'), 1000);
+            });
+
+            // --- 14. Raw Copy Editor Live Sync & Dirty State ---
+            const dirtyWarning = document.getElementById('dirty-warning');
+            const btnReanalyse = document.getElementById('btn-reanalyse');
+            const markedPreviewContent = document.getElementById('editor-marked-content');
+            
+            rawEditor.addEventListener('input', () => {
+                dirtyWarning.classList.remove('hidden');
+                dirtyWarning.classList.add('flex');
+                btnReanalyse.classList.add('animate-pulse', 'ring-2', 'ring-brand-blue');
+            });
+
+            // --- 7. Re-analyse Button ---
+            btnReanalyse.addEventListener('click', () => {
+                const icon = btnReanalyse.querySelector('.indicator');
+                icon.classList.add('fa-spin');
+                
+                setTimeout(() => {
+                    icon.classList.remove('fa-spin');
+                    dirtyWarning.classList.add('hidden');
+                    dirtyWarning.classList.remove('flex');
+                    btnReanalyse.classList.remove('animate-pulse', 'ring-2', 'ring-brand-blue');
+                    
+                    markedPreviewContent.innerText = rawEditor.value;
+                    showToast('Analysis complete. Findings updated.');
+                }, 2000);
+            });
+
+            // --- 8. Upload Modal ---
+            const uploadModal = document.getElementById('upload-modal');
+            const openUpload = () => {
+                uploadModal.classList.remove('hidden');
+                setTimeout(() => document.getElementById('upload-modal-content').classList.remove('scale-95', 'opacity-0'), 10);
+            };
+            const closeUpload = () => {
+                document.getElementById('upload-modal-content').classList.add('scale-95', 'opacity-0');
+                setTimeout(() => uploadModal.classList.add('hidden'), 300);
+            };
+            document.getElementById('btn-upload').addEventListener('click', openUpload);
+            document.getElementById('btn-close-modal').addEventListener('click', closeUpload);
+            uploadModal.addEventListener('click', (e) => { if(e.target === uploadModal) closeUpload(); });
+
+            // --- 9. Citation Panel ---
+            const citationPanel = document.getElementById('citation-panel');
+            const citationOverlay = document.getElementById('citation-overlay');
+            const openCitation = () => {
+                citationOverlay.classList.remove('hidden');
+                setTimeout(() => {
+                    citationOverlay.classList.remove('opacity-0');
+                    citationPanel.classList.remove('translate-x-full');
+                }, 10);
+            };
+            const closeCitation = () => {
+                citationPanel.classList.add('translate-x-full');
+                citationOverlay.classList.add('opacity-0');
+                setTimeout(() => citationOverlay.classList.add('hidden'), 300);
+            };
+            document.querySelectorAll('.source-trigger').forEach(btn => btn.addEventListener('click', openCitation));
+            document.getElementById('btn-close-citation').addEventListener('click', closeCitation);
+            citationOverlay.addEventListener('click', closeCitation);
+
+            // --- 10. Brand Kit Filtering ---
+            const bkTabs = document.querySelectorAll('.bk-tab');
+            const bkCards = document.querySelectorAll('.bk-card');
+            bkTabs.forEach(tab => {
+                tab.addEventListener('click', (e) => {
+                    bkTabs.forEach(t => t.className = 'bk-tab px-4 py-2 text-sm font-medium text-slate-400 border-b-2 border-transparent hover:text-slate-200 transition-colors');
+                    e.target.className = 'bk-tab px-4 py-2 text-sm font-medium text-brand-blue border-b-2 border-brand-blue transition-colors';
+                    const target = e.target.dataset.bkTarget;
+                    bkCards.forEach(card => {
+                        card.style.display = (card.dataset.bkCategory === target || target === 'all') ? 'block' : 'none';
+                    });
+                });
+            });
+
+            // --- 11. Approvals Queue View ---
+            const personaToggle = document.getElementById('persona-toggle');
+            personaToggle.addEventListener('change', (e) => {
+                const isReviewer = e.target.value === 'reviewer';
+                document.querySelectorAll('.actions-creator').forEach(el => el.style.display = isReviewer ? 'none' : 'flex');
+                document.querySelectorAll('.actions-reviewer').forEach(el => {
+                    el.style.display = isReviewer ? 'flex' : 'none';
+                    if (isReviewer) el.classList.remove('hidden');
+                });
+            });
+
+            document.querySelectorAll('.btn-approve-stage-1').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const row = e.target.closest('.queue-item');
+                    row.remove();
+                    showToast('Document Approved (Stage 1)');
+                });
+            });
+
+            // --- 12. Insights Export CSV ---
+            document.getElementById('btn-export-csv').addEventListener('click', () => {
+                const blob = new Blob(['Metric,Value\nFirst-Pass Yield,82%\nTotal Findings,44'], { type: 'text/csv' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'brandlens_insights.csv';
+                a.click();
+                showToast('Insights exported successfully');
+            });
+
+            // --- 13. Settings Toggles ---
+            document.querySelectorAll('.settings-toggle').forEach(toggle => {
+                toggle.addEventListener('click', (e) => {
+                    const btn = e.currentTarget;
+                    const dot = btn.querySelector('span');
+                    btn.classList.toggle('bg-brand-blue');
+                    btn.classList.toggle('bg-slate-600');
+                    dot.classList.toggle('translate-x-6');
+                    showToast('Settings updated');
+                });
+            });
+
+            // --- NEW FEATURE 1: Profile Dropdown ---
+            const profileBtn = document.getElementById('btn-profile');
+            const profileDropdown = document.getElementById('profile-dropdown');
+            
+            profileBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                profileDropdown.classList.toggle('hidden');
+            });
+            
+            // Close dropdown when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!profileDropdown.contains(e.target) && e.target !== profileBtn) {
+                    profileDropdown.classList.add('hidden');
+                }
+            });
+
+            // --- NEW FEATURE 2: Dashboard Audit Panel ---
+            const auditPanel = document.getElementById('audit-panel');
+            const auditOverlay = document.getElementById('audit-overlay');
+            
+            const openAudit = () => {
+                auditOverlay.classList.remove('hidden');
+                setTimeout(() => {
+                    auditOverlay.classList.remove('opacity-0');
+                    auditPanel.classList.remove('translate-x-full');
+                }, 10);
+            };
+            
+            const closeAudit = () => {
+                auditPanel.classList.add('translate-x-full');
+                auditOverlay.classList.add('opacity-0');
+                setTimeout(() => auditOverlay.classList.add('hidden'), 300);
+            };
+            
+            document.getElementById('btn-full-log').addEventListener('click', openAudit);
+            document.getElementById('btn-close-audit').addEventListener('click', closeAudit);
+            auditOverlay.addEventListener('click', closeAudit);
+
+            // Initial UI Setup
+            updateFilterUI();
+        });
+    </script>
+</body>
+</html>
